@@ -1,0 +1,68 @@
+# 网页对照翻译
+
+这是一个自用的桌面 Chrome 扩展。打开英文文章，点击「翻译当前页」，扩展就会用 DeepSeek 把标题和正文翻成简体中文，并逐批把译文放到原文下方。API Key 由电脑上的本地服务读取，待译正文会发送给 DeepSeek。
+
+## 准备
+
+- Node.js 22.18 或以上版本，以及随附的 npm。
+- 桌面 Chrome 120 或以上版本。
+- 可调用 [DeepSeek API](https://api-docs.deepseek.com/) 的 API Key。
+
+## 安装、构建和启动
+
+在项目目录打开终端，运行：
+
+```sh
+npm ci
+npm run build
+cp .env.example .env
+```
+
+用编辑器打开项目里的 `.env`，在 `DEEPSEEK_API_KEY=` 后填入自己的密钥。默认模型是 `deepseek-flash`，可通过 `DEEPSEEK_MODEL` 修改。也可以直接在终端环境中设置这些变量，已有的环境变量优先于 `.env`。
+
+启动本地服务，并保持终端运行：
+
+```sh
+npm start
+```
+
+服务启动后会显示本地地址 `http://127.0.0.1:8765`。如端口被占用，先关闭占用该端口的程序，再重启本地服务。
+
+## 在 Chrome 中加载和使用
+
+1. 在 Chrome 打开 `chrome://extensions`，开启「开发者模式」。
+2. 点击「加载已解压的扩展程序」，选择项目里的 **`dist/extension`**。如果此前加载的是项目根目录的 Ollama 版本，可以从 Chrome 扩展管理页移除旧版。
+3. 打开一篇英文新闻、博客或技术文档。从 Chrome 扩展菜单打开「Translate · 网页对照翻译」，点击「翻译当前页」。
+4. 译文会逐批出现在原文下方。可取消「显示中文译文」只看英文，也可取消「显示英文原文」只看译文。点击「恢复网页」可移除译文。
+5. 某批失败时，扩展会保留已经显示的译文。解决错误提示中的问题后，点击「重试翻译」。滚动加载新段落后，可以再次点击「翻译当前页」。
+
+修改扩展代码后，重新执行 `npm run build`，在 Chrome 扩展管理页点击「重新加载」，并刷新待翻译的标签页。修改本地服务后重新构建并重启 `npm start`。只修改 `.env` 时，重启本地服务即可。
+
+## 测试
+
+```sh
+npm run typecheck
+npm test
+```
+
+自动测试使用替代模型响应，无需填写 API Key。浏览器测试会加载构建后的扩展，并通过本机测试服务验证翻译、重试和恢复。首次运行要下载测试浏览器。
+
+```sh
+npx playwright-core install chromium
+npm run test:browser
+```
+
+## 目录结构
+
+| 路径 | 用途 |
+| --- | --- |
+| `src/extension/` | Chrome 扩展配置、弹窗、页面内容提取、译文显示与后台请求 |
+| `src/server/` | 本地 HTTP 服务和 DeepSeek API 请求 |
+| `src/shared/` | 段落数据结构、分批、译文校验与本地接口配置 |
+| `scripts/build.mjs` | 用 esbuild 构建扩展和本地服务 |
+| `tests/` | 分批和接口测试、Chromium 扩展测试 |
+| `docs/` | 架构、接口与人工验收 |
+| `dist/extension/` | 构建后供 Chrome 加载的目录 |
+| `dist/server.js` | 构建后的本地翻译服务 |
+
+首版面向公开文章中已经加载的正文。它按网页结构和英文字符筛选标题、段落等文本，不做精确语种识别。Chrome 内部页面、PDF、iframe、代码块和交互表单不在处理范围内。详见 [设计与验收文档](docs/design.md)。

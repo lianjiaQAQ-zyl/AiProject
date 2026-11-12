@@ -1,0 +1,8 @@
+:root { color-scheme: light dark; font: 14px system-ui, sans-serif; }
+body { width: 310px; margin: 16px; }
+h1 { font-size: 18px; margin: 0 0 12px; }
+.actions { display: flex; gap: 8px; }
+button { cursor: pointer; padding: 6px 10px; }
+button:disabled { cursor: default; }
+.toggle { display: block; margin-top: 10px; }
+p { overflow-wrap: anywhere; }
