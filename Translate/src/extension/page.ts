@@ -1,16 +1,18 @@
 import { batchBlocks, readTranslations } from "../shared/translation.ts";
 import { collectPageBlocks } from "./page-blocks.ts";
+import { createInterfaceDisplay } from "./interface-display.ts";
 import { createPageDisplay } from "./page-display.ts";
 import type { PageCommand, PageStatus, TranslationReply } from "./messages.ts";
 
 function createPageController() {
   const display = createPageDisplay();
+  const interfaceDisplay = createInterfaceDisplay();
   let job: ReturnType<typeof prepareJob> | undefined;
   let running = false;
   let message = "等待翻译。";
 
   function prepareJob() {
-    const blocks = collectPageBlocks(document, display.readSource, display.has);
+    const blocks = collectPageBlocks(document, display.readSource, display.has, interfaceDisplay.has);
     return {
       blocks,
       batches: batchBlocks(blocks.flatMap(block => block.parts)),
@@ -33,11 +35,17 @@ function createPageController() {
         for (const { id, text } of readTranslations(reply, blocks)) current.translations.set(id, text);
         current.nextBatch++;
         while (current.nextBlock < current.blocks.length) {
-          const { element, source, parts } = current.blocks[current.nextBlock];
+          const { target, source, parts } = current.blocks[current.nextBlock];
           if (!parts.every(({ id }) => current.translations.has(id))) break;
-          if (element.isConnected && display.readSource(element) === source) {
-            display.render(element, source, parts.map(({ id }) => current.translations.get(id)).join("\n"));
-            current.rendered++;
+          if (target.isConnected) {
+            const translation = parts.map(({ id }) => current.translations.get(id)).join("\n");
+            if (target instanceof Text && target.data.trim() === source) {
+              interfaceDisplay.render(target, translation);
+              current.rendered++;
+            } else if (target instanceof HTMLElement && display.readSource(target) === source) {
+              display.render(target, source, translation);
+              current.rendered++;
+            }
           }
           for (const { id } of parts) current.translations.delete(id);
           current.nextBlock++;
@@ -56,11 +64,15 @@ function createPageController() {
 
   return (command: PageCommand): PageStatus => {
     if (command.type === "original") display.setOriginal(command.visible);
-    if (command.type === "translation") display.setTranslation(command.visible);
+    if (command.type === "translation") {
+      display.setTranslation(command.visible);
+      interfaceDisplay.setTranslation(command.visible);
+    }
     if (command.type === "restore") {
       job = undefined;
       running = false;
       display.restore();
+      interfaceDisplay.restore();
       message = "已恢复原网页。";
     }
     if (command.type === "translate" && !running) {

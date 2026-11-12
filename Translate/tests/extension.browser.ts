@@ -12,11 +12,13 @@ test("extension translates article text, retries failed batches and restores the
   const server = createTranslationServer(async blocks => {
     requests.push(blocks.map(({ text }) => text));
     if (requests.length === 2) throw new Error("测试失败");
-    return blocks.map(({ id }) => ({ id, text: "<b>中文译文</b>" })).reverse();
+    return blocks.map(({ id, text }) => ({
+      id, text: text === "Add file" ? "添加文件" : text === "main branch" ? "主分支" : text === "Repository overview" ? "仓库概览" : "<b>中文译文</b>"
+    })).reverse();
   });
   const article = createServer((_request, response) => {
     response.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
-    response.end(`<!doctype html><nav><p>Navigation menu</p></nav><main><article>
+    response.end(`<!doctype html><nav aria-label="Repository"></nav><main><article>
       <h1>Example article</h1><p id="narrow-source" style="max-inline-size: 320px">Read the <a href="#details">documentation</a>.</p>
       <pre><code>console.log("Hello")</code></pre><p hidden>Hidden text</p>
       ${Array.from({ length: 11 }, (_, index) => `<p>Example paragraph ${index + 1}</p>`).join("")}
@@ -41,6 +43,7 @@ test("extension translates article text, retries failed batches and restores the
     ]
   });
   t.after(() => browser.close());
+  browser.setDefaultTimeout(5000);
   const worker = browser.serviceWorkers()[0] ?? await browser.waitForEvent("serviceworker");
   const page = browser.pages()[0];
   await page.goto(`http://${LOCAL_HOST}:${address.port}/`);
@@ -75,10 +78,10 @@ test("extension translates article text, retries failed batches and restores the
   await page.waitForFunction(() =>
     document.querySelector("#narrow-source + .llm-translate-result")?.getBoundingClientRect().width === 240
   );
-  await popupPage.getByLabel("显示英文原文").uncheck();
+  await popupPage.getByLabel("显示正文英文").uncheck();
   await narrowSource.waitFor({ state: "hidden" });
   assert.equal((await narrowTranslation.boundingBox())?.width, 240);
-  await popupPage.getByLabel("显示英文原文").check();
+  await popupPage.getByLabel("显示正文英文").check();
 
   await popupPage.getByLabel("显示中文译文").uncheck();
   await page.locator(".llm-translate-result").first().waitFor({ state: "hidden" });
@@ -113,16 +116,49 @@ test("extension translates article text, retries failed batches and restores the
   ]);
   await popupPage.getByRole("button", { name: "翻译当前页" }).click();
   await popupPage.getByRole("status").getByText(/没有找到尚未翻译/).waitFor();
-  await popupPage.getByLabel("显示英文原文").uncheck();
+  await popupPage.getByLabel("显示正文英文").uncheck();
   await list.locator("a").waitFor({ state: "hidden" });
   assert.equal(await listTranslations.nth(0).isVisible(), true);
   assert.equal(await list.locator(":scope > li").first().evaluate(item => getComputedStyle(item).display), "list-item");
   await popupPage.getByLabel("显示中文译文").uncheck();
   await list.locator("a").waitFor();
   await listTranslations.nth(0).waitFor({ state: "hidden" });
+  await popupPage.getByLabel("显示中文译文").check();
+  await listTranslations.nth(0).waitFor();
+
+  await page.locator("nav").evaluate(nav => {
+    nav.innerHTML = `<div style="display:flex;gap:8px">
+      <button id="add-file" style="font:16px/20px Arial">Add file</button>
+      <a id="branch" href="#branch" style="font:16px/20px Arial">main branch</a>
+      <h2 style="position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)">Latest commit</h2>
+      <span>存放 vibecoding 的一些项目</span>
+      <div id="wide-label" style="width:400px;font:16px/20px Arial">Repository overview</div>
+    </div>`;
+    nav.querySelector("button")?.addEventListener("click", event => {
+      (event.currentTarget as HTMLElement).dataset.clicked = "true";
+    });
+  });
+  const button = page.locator("#add-file");
+  const branch = page.locator("#branch");
+  const buttonHeight = (await button.boundingBox())?.height;
+  await popupPage.getByRole("button", { name: "翻译当前页" }).click();
+  await popupPage.getByRole("status").getByText(/已翻译 3 段/).waitFor();
+  assert.deepEqual(requests.at(-1), ["Add file", "main branch", "Repository overview"]);
+  assert.match(await button.textContent() ?? "", /添/);
+  assert.equal((await button.boundingBox())?.height, buttonHeight);
+  assert.equal(await branch.getAttribute("href"), "#branch");
+  assert.equal(await branch.textContent(), "主分支");
+  assert.equal(await page.locator("#wide-label").textContent(), "Repository overview / 仓库概览");
+  assert.equal(await page.locator("nav .llm-translate-result").count(), 0);
+  await button.click();
+  assert.equal(await button.getAttribute("data-clicked"), "true");
+  await popupPage.getByLabel("显示中文译文").uncheck();
+  assert.equal(await button.textContent(), "Add file");
+  await popupPage.getByLabel("显示中文译文").check();
 
   await popupPage.getByRole("button", { name: "恢复网页" }).click();
   await page.locator(".llm-translate-result").first().waitFor({ state: "detached" });
   assert.equal(await list.locator(":scope > li > a").getAttribute("href"), "#first");
   assert.equal(await list.getAttribute("start"), "3");
+  assert.equal(await button.textContent(), "Add file");
 });
