@@ -27,6 +27,31 @@ function archiveMarkup() {
   return articleRows(items);
 }
 
+function desktop() {
+  const shortcuts = [
+    ["posts", "文章", "folder"],
+    ["notes", "笔记", "folder"],
+    ["about", "关于", "file"]
+  ];
+  return `<div class="desktop">
+    <nav class="desktop-shortcuts" aria-label="桌面快捷入口">
+      ${shortcuts.map(([route, label, icon]) => `
+        <a class="desktop-shortcut" href="#${route}">
+          <span class="desktop-icon desktop-icon--${icon}" aria-hidden="true"></span>
+          <span>${label}</span>
+        </a>`).join("")}
+    </nav>
+    <section class="desktop-window" aria-labelledby="recent-title">
+      <header><h2 id="recent-title">最近更新</h2><a href="#posts">全部文章 ↗</a></header>
+      ${articles.slice(0, 3).map(article => `
+        <a class="desktop-entry" href="${articleUrl(article)}">
+          <span>${escapeHtml(article.title)}</span>
+          <time class="mono" datetime="${article.date}">${article.date.slice(5)}</time>
+        </a>`).join("")}
+    </section>
+  </div>`;
+}
+
 function archiveSection() {
   return `<section class="archive">
     <div class="archive-head"><h2>文章索引</h2><div class="filters" aria-label="按分类筛选">
@@ -41,6 +66,7 @@ function home() {
     <section class="intro">
       <p>关于软件开发与工具使用的实践笔记。</p>
     </section>
+    ${desktop()}
     ${archiveSection()}`;
 }
 

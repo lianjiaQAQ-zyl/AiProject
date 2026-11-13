@@ -162,3 +162,81 @@ nav a[aria-current] { color: var(--ink); box-shadow: inset 0 -2px var(--rust); }
   .contents { position: static; }
   .contents .back { margin-bottom: 12px; }
 }
+
+.desktop {
+  display: grid;
+  grid-template-columns: minmax(235px, 0.8fr) minmax(0, 1.2fr);
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.desktop-shortcuts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  align-content: center;
+  padding: 15px 9px;
+  border: 1px solid var(--line);
+  background-color: #f2eee5;
+  background-image: radial-gradient(#d9d1c2 1px, transparent 1px);
+  background-size: 13px 13px;
+}
+
+.desktop-shortcut {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  padding: 10px 2px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.desktop-shortcut:hover { background: #e8e1d4; }
+
+.desktop-icon {
+  display: block;
+  position: relative;
+  width: 39px;
+  height: 31px;
+  margin-top: 5px;
+  border: 1px solid #897459;
+  border-radius: 3px;
+  background: #e9cd99;
+  box-shadow: 0 2px 0 #89745944;
+}
+.desktop-icon--folder::before {
+  content: "";
+  position: absolute;
+  width: 16px;
+  height: 5px;
+  left: -1px;
+  bottom: 100%;
+  border: 1px solid #897459;
+  border-radius: 3px 3px 0 0;
+  background: #e9cd99;
+}
+.desktop-icon--file {
+  width: 26px;
+  background: #fffaf0;
+}
+.desktop-icon--file::before {
+  content: "";
+  position: absolute;
+  inset: 8px 5px;
+  background: repeating-linear-gradient(to bottom, #897459 0 1px, transparent 1px 5px);
+}
+.desktop-window { min-width: 0; border: 1px solid var(--line); }
+.desktop-window header, .desktop-entry {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 14px;
+}
+.desktop-window header { background: #f2eee5; }
+.desktop-window h2 { margin: 0; font-size: 14px; }
+.desktop-window header a, .desktop-entry time { color: var(--rust); font-size: 12px; white-space: nowrap; }
+.desktop-entry { border-top: 1px solid var(--line); font-size: 13px; }
+.desktop-entry:hover, .desktop-window header a:hover { text-decoration: underline; text-underline-offset: 3px; }
+@media (max-width: 680px) {
+  .desktop { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+}
