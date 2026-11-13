@@ -6,6 +6,20 @@ export interface TextBlock {
 export const MAX_BATCH_CHARACTERS = 3200;
 const MAX_BATCH_BLOCKS = 12;
 
+export function splitTranslationText(text: string): string[] {
+  const parts = [];
+  while (text.length > MAX_BATCH_CHARACTERS) {
+    const space = text.lastIndexOf(" ", MAX_BATCH_CHARACTERS);
+    let end = space > MAX_BATCH_CHARACTERS / 2 ? space : MAX_BATCH_CHARACTERS;
+    const previous = text.charCodeAt(end - 1);
+    if (previous >= 0xd800 && previous <= 0xdbff) end--;
+    parts.push(text.slice(0, end).trim());
+    text = text.slice(end).trimStart();
+  }
+  if (text) parts.push(text);
+  return parts;
+}
+
 export function batchBlocks<T extends TextBlock>(blocks: readonly T[]): T[][] {
   const batches: T[][] = [];
   let batch: T[] = [];

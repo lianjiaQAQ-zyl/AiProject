@@ -1,3 +1,4 @@
+import { createWebImageController } from "./web-images.ts";
 import { batchBlocks, readTranslations } from "../shared/translation.ts";
 import { collectPageBlocks } from "./page-blocks.ts";
 import { createInterfaceDisplay } from "./interface-display.ts";
@@ -6,6 +7,7 @@ import type { PageCommand, PageStatus, TranslationReply } from "./messages.ts";
 
 function createPageController() {
   const display = createPageDisplay();
+  const images = createWebImageController();
   const interfaceDisplay = createInterfaceDisplay();
   let job: ReturnType<typeof prepareJob> | undefined;
   let running = false;
@@ -50,6 +52,7 @@ function createPageController() {
           for (const { id } of parts) current.translations.delete(id);
           current.nextBlock++;
         }
+        images.refreshPositions();
         message = `已翻译 ${current.rendered} / ${current.blocks.length} 段。`;
       }
       message = `已翻译 ${current.rendered} 段。`;
@@ -67,24 +70,27 @@ function createPageController() {
     if (command.type === "translation") {
       display.setTranslation(command.visible);
       interfaceDisplay.setTranslation(command.visible);
+      images.setVisible(command.visible);
     }
     if (command.type === "restore") {
       job = undefined;
       running = false;
       display.restore();
       interfaceDisplay.restore();
+      images.restore();
       message = "已恢复原网页。";
     }
     if (command.type === "translate" && !running) {
+      images.start();
       job ??= prepareJob();
       if (job.blocks.length) void translate(job);
       else {
         job = undefined;
-        message = "没有找到尚未翻译的英文正文。";
+        message = "没有找到尚未翻译的英文文字。";
       }
     }
     return {
-      message,
+      message: message + images.status(),
       running,
       canRetry: !running && Boolean(job),
       showOriginal: display.showOriginal,

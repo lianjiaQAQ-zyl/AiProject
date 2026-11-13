@@ -2,7 +2,7 @@ const EXCLUDED = [
   "script", "style", "noscript", "template", "svg", "pre", "code", "kbd", "samp",
   "input", "textarea", "select", "option", "[hidden]", "[inert]", "[aria-hidden=true]",
   "[contenteditable]:not([contenteditable=false])", "[translate=no]", ".sr-only",
-  ".visually-hidden", ".screen-reader-text", ".llm-translate-result"
+  ".visually-hidden", ".screen-reader-text", ".llm-translate-result", ".llm-image-layer"
 ].join(", ");
 
 export function createVisibilityCheck() {
