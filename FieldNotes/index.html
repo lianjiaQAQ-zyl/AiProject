@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="一份关于软件开发与工具使用的开发笔记。">
+<title>栈间笔记 · Field Notes</title>
+<link rel="stylesheet" href="styles.css">
+<script type="module" src="app.js"></script>
+</head>
+<body>
+<header class="bar"><div class="bar-inner">
+<a class="brand" href="#home"><span aria-hidden="true">›_</span> 栈间笔记</a>
+<nav aria-label="主导航"><a href="#home" data-nav="home"><span aria-hidden="true">[H]</span> 文章</a><a href="#about" data-nav="about"><span aria-hidden="true">[A]</span> 关于</a></nav>
+<button id="search-open" class="search-trigger" type="button"><span aria-hidden="true">⌕</span> 搜索 <kbd>S</kbd></button>
+</div></header>
+<main id="main"></main>
+<footer class="footer"><span>栈间笔记 <span class="mono">/ FIELD NOTES</span></span><span>前端原型 · 示例内容</span></footer>
+<dialog id="search">
+<form method="dialog" class="dialog-head"><h2>搜索文章</h2><button type="submit" aria-label="关闭搜索">×</button></form>
+<label class="search-label" for="query">标题、分类或关键词</label>
+<input id="query" type="search" placeholder="例如：浏览器、CSS" autocomplete="off">
+<div id="search-results" aria-live="polite"></div>
+</dialog>
+</body>
+</html>
