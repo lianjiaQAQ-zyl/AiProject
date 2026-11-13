@@ -67,7 +67,7 @@ function home() {
     <section class="intro">
       <p>关于软件开发与工具使用的实践笔记。</p>
       <div class="pet-stage">
-        <button class="desktop-pet" type="button" aria-label="让橘色桌宠跳一下"><span class="pet-sprite" aria-hidden="true"></span></button>
+        <button class="desktop-pet" type="button" aria-label="让橘色桌宠跳一下并开关音效"><span class="pet-sprite" aria-hidden="true"></span></button>
       </div>
     </section>
     ${desktop()}
