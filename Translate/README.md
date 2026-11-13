@@ -38,6 +38,14 @@ npm start
 
 修改扩展代码后，重新执行 `npm run build`，在 Chrome 扩展管理页点击「重新加载」，并刷新待翻译的标签页。修改本地服务后重新构建并重启 `npm start`。只修改 `.env` 时，重启本地服务即可。
 
+## 翻译网页图片（macOS）
+
+首次启用图片识别时，安装 Apple 命令行工具（可运行 `xcode-select --install`），在项目目录运行 `npm run build:ocr`，然后重启 `npm start`。构建 Chrome 扩展仍使用 `npm run build`。
+
+点击「翻译当前页」后，扩展也会自动识别已加载、进入视野的网页图片。滚动到后面的图片时会继续处理。发现英文的图片会出现「查看图片译文」，点开可查看识别出的英文和中文。图片像素由本机识别，DeepSeek 只接收识别出的文字。「恢复网页」会移除译文入口并停止识别后续图片。
+
+扩展优先读取网页 `<img>` 的原图。Chrome 限制读取跨域图片时，扩展会在当前标签页截取并裁剪图片可见区域，再交给本机识别。太小的图片和 CSS 背景图会跳过。没有识别出英文时，图片上不会出现译文入口。
+
 ## 测试
 
 ```sh
@@ -45,7 +53,7 @@ npm run typecheck
 npm test
 ```
 
-自动测试使用替代模型响应，无需填写 API Key。浏览器测试会加载构建后的扩展，并通过本机测试服务验证翻译、重试和恢复。首次运行要下载测试浏览器。
+自动测试使用替代模型响应，无需填写 API Key。浏览器测试会加载构建后的扩展，验证网页排版、重试、恢复和自动图片翻译。在 Mac 上先运行 `npm run build:ocr`，图片测试会使用真实的本机识别。首次运行要下载测试浏览器。
 
 ```sh
 npx playwright-core install chromium
@@ -57,7 +65,8 @@ npm run test:browser
 | 路径 | 用途 |
 | --- | --- |
 | `src/extension/` | Chrome 扩展配置、弹窗、页面内容提取、译文显示与后台请求 |
-| `src/server/` | 本地 HTTP 服务和 DeepSeek API 请求 |
+| `src/server/` | 本地 HTTP 服务、DeepSeek API 请求和图片识别入口 |
+| `src/ocr/` | macOS Vision 文字识别工具 |
 | `src/shared/` | 段落数据结构、分批、译文校验与本地接口配置 |
 | `scripts/build.mjs` | 用 esbuild 构建扩展和本地服务 |
 | `tests/` | 分批和接口测试、Chromium 扩展测试 |
