@@ -7,11 +7,17 @@ interface RenderedTranslation {
   original: HTMLElement;
 }
 
-function wrapListItemContent(item: HTMLElement) {
+function wrapOriginalContent(item: HTMLElement) {
   const original = item.ownerDocument.createElement("span");
   original.append(...item.childNodes);
   item.append(original);
   return original;
+}
+
+function shouldKeepTranslationInside(element: HTMLElement) {
+  const parent = element.parentElement;
+  return element.localName === "li" ||
+    Boolean(parent && /flex|grid/.test(getComputedStyle(parent).display));
 }
 
 function constrainTranslationWidth(original: HTMLElement, result: HTMLElement) {
@@ -59,8 +65,8 @@ export function createPageDisplay() {
     render(element: HTMLElement, source: string, translation: string) {
       const previous = rendered.get(element);
       const original = previous?.original ??
-        (element.localName === "li" ? wrapListItemContent(element) : element);
-      const result = element.ownerDocument.createElement("div");
+        (shouldKeepTranslationInside(element) ? wrapOriginalContent(element) : element);
+      const result = element.ownerDocument.createElement(original === element ? "div" : "span");
       result.className = RESULT_CLASS;
       result.lang = "zh-Hans";
       result.textContent = translation;

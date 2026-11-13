@@ -19,7 +19,7 @@ test("extension translates article text, retries failed batches and restores the
   const article = createServer((_request, response) => {
     response.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
     response.end(`<!doctype html><nav aria-label="Repository"></nav><main><article>
-      <h1>Example article</h1><p id="narrow-source" style="max-inline-size: 320px">Read the <a href="#details">documentation</a>.</p>
+      <h1>Example article</h1><div style="display:flex;align-items:start"><p id="narrow-source" style="width:100%;max-inline-size: 320px">Read the <a href="#details">documentation</a>.</p><div style="width:100px"></div></div>
       <pre><code>console.log("Hello")</code></pre><p hidden>Hidden text</p>
       ${Array.from({ length: 11 }, (_, index) => `<p>Example paragraph ${index + 1}</p>`).join("")}
     </article></main>`);
@@ -72,14 +72,17 @@ test("extension translates article text, retries failed batches and restores the
   assert.equal(await page.locator(".llm-translate-result b").count(), 0);
   assert.equal(await page.locator("a").getAttribute("href"), "#details");
   const narrowSource = page.locator("#narrow-source");
-  const narrowTranslation = page.locator("#narrow-source + .llm-translate-result");
+  const narrowTranslation = page.locator("#narrow-source > .llm-translate-result");
   assert.equal((await narrowTranslation.boundingBox())?.width, (await narrowSource.boundingBox())?.width);
+  const english = await narrowSource.locator("a").boundingBox();
+  const chinese = await narrowTranslation.boundingBox();
+  assert.ok(english && chinese && chinese.y >= english.y + english.height);
   await narrowSource.evaluate(element => element.style.maxInlineSize = "240px");
   await page.waitForFunction(() =>
-    document.querySelector("#narrow-source + .llm-translate-result")?.getBoundingClientRect().width === 240
+    document.querySelector("#narrow-source > .llm-translate-result")?.getBoundingClientRect().width === 240
   );
   await popupPage.getByLabel("显示正文英文").uncheck();
-  await narrowSource.waitFor({ state: "hidden" });
+  await narrowSource.locator("a").waitFor({ state: "hidden" });
   assert.equal((await narrowTranslation.boundingBox())?.width, 240);
   await popupPage.getByLabel("显示正文英文").check();
 
