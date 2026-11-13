@@ -1,3 +1,4 @@
+import { mountPet } from "./pet.js";
 import { articles } from "./data.js";
 
 const main = document.querySelector("#main");
@@ -65,6 +66,9 @@ function home() {
   return `
     <section class="intro">
       <p>关于软件开发与工具使用的实践笔记。</p>
+      <div class="pet-stage">
+        <button class="desktop-pet" type="button" aria-label="让橘色桌宠跳一下"><span class="pet-sprite" aria-hidden="true"></span></button>
+      </div>
     </section>
     ${desktop()}
     ${archiveSection()}`;
@@ -103,6 +107,7 @@ function render() {
   };
   const page = article ? "home" : Object.hasOwn(pages, route) ? route : "home";
   main.innerHTML = article ? articlePage(article) : pages[page] ?? home();
+  mountPet(main);
   document.title = (article?.title ?? ({ posts: "文章索引", notes: "笔记", about: "关于" })[page] ?? "Field Notes") + " · 栈间笔记";
   document.querySelectorAll("[data-nav]").forEach(link => {
     if (link.dataset.nav === (["posts", "notes"].includes(page) ? "home" : page)) link.setAttribute("aria-current", "page");

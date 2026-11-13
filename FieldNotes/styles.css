@@ -240,3 +240,52 @@ nav a[aria-current] { color: var(--ink); box-shadow: inset 0 -2px var(--rust); }
 @media (max-width: 680px) {
   .desktop { grid-template-columns: minmax(0, 1fr); gap: 12px; }
 }
+
+.pet-stage {
+  position: relative;
+  width: 100%;
+  height: 96px;
+  margin-top: 2px;
+  background: linear-gradient(transparent 78%, #ede4d5 100%);
+  border-bottom: 1px solid var(--line);
+}
+
+.desktop-pet {
+  position: absolute;
+  inset-block-end: -6px;
+  width: 88px;
+  height: 94px;
+  padding: 8px;
+  border: 0;
+  background: transparent;
+  animation: pet-stroll 24s linear infinite;
+}
+
+.pet-sprite {
+  display: block;
+  width: 72px;
+  height: 78px;
+  background: url("assets/codex-pet.webp") 0 -78px / 576px 702px no-repeat;
+  filter: hue-rotate(166deg) saturate(1.12);
+  animation: pet-steps 0.8s steps(8, end) infinite;
+}
+
+@keyframes pet-steps {
+  to { background-position-x: -576px; }
+}
+
+.desktop-pet:hover, .desktop-pet:focus,
+.desktop-pet:hover .pet-sprite, .desktop-pet:focus .pet-sprite { animation-play-state: paused; }
+
+@keyframes pet-stroll {
+  0%, 12% { left: 0; transform: scaleX(1); }
+  43% { left: calc(100% - 88px); transform: scaleX(1); }
+  44%, 57% { left: calc(100% - 88px); transform: scaleX(-1); }
+  88%, 99% { left: 0; transform: scaleX(-1); }
+  100% { left: 0; transform: scaleX(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .desktop-pet, .pet-sprite { animation: none; }
+  .pet-sprite { background-position: 0 0; }
+}
